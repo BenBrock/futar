@@ -12,13 +12,13 @@ int add(int x, int y) {
 }
 
 int main(int argc, char** argv) {
-  FuturePool<decltype(expl::future(foo, 12))> pool;
+  FuturePool<decltype(std::async(foo, 12))> pool;
 
-  auto f = expl::future(foo, 12);
+  auto f = std::async(foo, 12);
 
-  pool.attach(expl::future(foo, 12));
-  pool.attach(expl::future(foo, 14));
-  pool.attach(expl::future(foo, 17));
+  pool.attach(std::async(foo, 12));
+  pool.attach(std::async(foo, 14));
+  pool.attach(std::async(foo, 17));
 
   std::cout << "Pool is size " << pool.size() << std::endl;
   auto result = pool.finish_one();

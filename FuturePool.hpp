@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 #include <list>
 #include <optional>
 
@@ -9,14 +10,14 @@ template <
           typename = std::enable_if_t<
                                       !std::is_same<
                                                     void,
-                                                    typename FutureType::return_type
+                                                    decltype(std::declval<FutureType>().get())
                                                     >::value
                                      >
          >
 class FuturePool {
 public:
   using future_type = FutureType;
-  using return_type = typename future_type::return_type;
+  using return_type = decltype(std::declval<future_type>().get());
 
   FuturePool() = default;
   FuturePool(const FuturePool&) = delete;
