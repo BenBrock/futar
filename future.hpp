@@ -12,12 +12,12 @@ template <typename Fn, typename... Args>
 class future {
 public:
 
-  using future_type = decltype(std::declval<Fn>()(std::declval<Args...>()));
+  using return_type = decltype(std::declval<Fn>()(std::declval<Args...>()));
 
   future(Fn fn, std::tuple<Args...> args) : fn_(fn), args_(args) {}
 
-  future_type get() {
-    return std::apply(fn_, std::move(args_));
+  return_type get() {
+    return std::apply(std::move(fn_), std::move(args_));
   }
 
   template <class Rep, class Period>
@@ -33,4 +33,4 @@ private:
 template <typename Fn, typename... Args>
 future(Fn fn, std::tuple<Args...> args) -> future<Fn, Args...>;
 
-}
+} // end expl
