@@ -11,8 +11,11 @@ namespace expl {
 template <typename Fn, typename... Args>
 class future {
 public:
-
   using return_type = decltype(std::declval<Fn>()(std::declval<Args...>()));
+
+  future() = delete;
+  future(const future&) = default;
+  future(future&&) = default;
 
   future(Fn fn, Args... args) : fn_(fn), args_(std::make_tuple(args...)) {}
 
