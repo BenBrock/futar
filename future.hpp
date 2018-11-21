@@ -3,6 +3,7 @@
 #include <utility>
 #include <future>
 #include <tuple>
+#include <chrono>
 #include <initializer_list>
 
 namespace expl {

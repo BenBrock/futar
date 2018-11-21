@@ -4,6 +4,9 @@
 #include <utility>
 #include <list>
 #include <optional>
+#include <chrono>
+#include <cassert>
+#include <unistd.h>
 
 namespace expl {
 
@@ -50,6 +53,80 @@ public:
       auto val = (*it).get();
       futures_.erase(it);
       return val;
+    }
+  }
+
+  std::list<return_type> finish_some() {
+    if (empty()) {
+      return {};
+    }
+
+    bool success = wait_some_();
+    assert(success);
+
+    return finish_ready();
+  }
+
+  std::list<return_type> finish_ready() {
+    std::list<return_type> return_values;
+    for (auto it = futures_.begin(); it != futures_.end(); ) {
+      if ((*it).wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        auto val = (*it).get();
+        return_values.push_back(val);
+        auto next_it = it;
+        next_it++;
+        futures_.erase(it);
+        it = next_it;
+      } else {
+        it++;
+      }
+    }
+    return return_values;
+  }
+
+  bool some_ready_() {
+    for (auto& future : futures_) {
+      if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool wait_some_() {
+    if (empty()) {
+      return false;
+    }
+
+    bool success = false;
+    std::size_t sleep_time = 1;
+
+    while (!(success = some_ready_())) {
+      usleep(sleep_time);
+      sleep_time *= 2;
+    }
+    return success;
+  }
+
+  template <class Rep, class Period>
+  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) const {
+    auto begin = std::chrono::high_resolution_clock::now();
+
+    auto end = begin;
+
+    bool success = false;
+    std::size_t sleep_time = 1;
+
+    while (!(success = some_ready_()) && (end - begin) < timeout_duration) {
+      usleep(sleep_time);
+      sleep_time *= 2;
+      end = std::chrono::high_resolution_clock::now();
+    }
+
+    if (success) {
+      return std::future_status::ready;
+    } else {
+      return std::future_status::timeout;
     }
   }
 

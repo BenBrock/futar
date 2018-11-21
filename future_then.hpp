@@ -1,6 +1,7 @@
 #pragma once
 
 #include <utility>
+#include <chrono>
 
 namespace expl {
 
@@ -33,6 +34,11 @@ public:
 
   return_type get() {
     return call_fn_impl_(std::index_sequence_for<Args...>());
+  }
+
+  template <class Rep, class Period>
+  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) const {
+    return future_.wait_for(timeout_duration);
   }
 
 private:

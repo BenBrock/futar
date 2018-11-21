@@ -4,6 +4,7 @@
 #include <FuturePool.hpp>
 
 int foo(int x) {
+  sleep(x);
   return x;
 }
 
@@ -12,21 +13,22 @@ int add(int x, int y) {
 }
 
 int main(int argc, char** argv) {
-  auto f = std::async(foo, 12);
+  auto f = expl::future_then(add, std::async(foo, 12), 13);
 
-  auto f2 = expl::future_then(add, std::move(f), 13);
+  expl::FuturePool pool(std::move(f));
 
-  expl::FuturePool pool(std::move(f2));
+  size_t n_jobs = 10000;
+
+  for (size_t i = 0; i < n_jobs; i++) {
+    auto f = expl::future_then(add, std::async(std::launch::async, foo, (int) (lrand48() % 10)), (int) (lrand48() % 10));
+    pool.attach(std::move(f));
+  }
 
   std::cout << "Pool is size " << pool.size() << std::endl;
-  auto result = pool.finish_one();
-  std::cout << "Got " << result.value() << std::endl;
-  std::cout << "Pool is size " << pool.size() << std::endl;
 
-  auto results = pool.finish_all();
-
-  for (const auto& result : results) {
-    std::cout << "Got " << result << std::endl;
+  while (!pool.empty()) {
+    auto results = pool.finish_some();
+    std::cout << "Got " << results.size() << std::endl;
   }
 
   std::cout << "Pool is size " << pool.size() << std::endl;
