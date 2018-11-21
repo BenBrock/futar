@@ -8,7 +8,7 @@ template <typename FutureType, typename Fn, typename... Args>
 class future_then {
 public:
   using future_type = FutureType;
-  using future_return_type = typename future_type::return_type;
+  using future_return_type = decltype(std::declval<future_type>().get());
 
   using return_type = decltype(
                                std::declval<Fn>()(
@@ -20,15 +20,15 @@ public:
   using size_type = size_t;
 
   future_then() = delete;
-  future_then(const future_then&) = default;
+  future_then(const future_then&) = delete;
   future_then(future_then&&) = default;
 
-  future_then(Fn&& fn, future_type future, Args&&... args)
-              : fn_(fn), future_(future), args_(std::make_tuple(args...)) {}
+  future_then(Fn fn, future_type&& future, Args... args)
+              : fn_(fn), future_(std::move(future)), args_(std::make_tuple(args...)) {}
 
   template <std::size_t... Is>
   return_type call_fn_impl_(std::index_sequence<Is...>) {
-    return fn_(future_.get(), std::get<Is>(args_)...);
+    return fn_(future_.get(), std::forward<Args>(std::get<Is>(args_))...);
   }
 
   return_type get() {
@@ -42,6 +42,6 @@ private:
 };
 
 template <typename FutureType, typename Fn, typename... Args>
-future_then(Fn&& fn, FutureType future, Args&&... args) -> future_then<FutureType, Fn, Args...>;
+future_then(Fn fn, FutureType&& future, Args... args) -> future_then<FutureType, Fn, Args...>;
 
 } // end expl

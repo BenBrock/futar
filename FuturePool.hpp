@@ -5,6 +5,8 @@
 #include <list>
 #include <optional>
 
+namespace expl {
+
 template <
           typename FutureType,
           typename = std::enable_if_t<
@@ -22,6 +24,10 @@ public:
   FuturePool() = default;
   FuturePool(const FuturePool&) = delete;
   FuturePool(FuturePool&&) = delete;
+
+  FuturePool(future_type&& future) {
+    attach(std::move(future));
+  }
 
   void attach(future_type&& future) {
     futures_.push_back(std::move(future));
@@ -58,3 +64,8 @@ public:
 private:
   std::list<future_type> futures_;
 };
+
+template <typename FutureType>
+FuturePool(FutureType&& future) -> FuturePool<FutureType>;
+
+} // end expl
