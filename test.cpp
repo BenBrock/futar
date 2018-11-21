@@ -11,9 +11,9 @@ int add(int x, int y) {
 }
 
 int main(int argc, char** argv) {
-  auto f = expl::future(foo, std::make_tuple(12));
+  auto f = expl::future(foo, 12);
 
-  auto f2 = expl::future_then(add, f, std::make_tuple(13));
+  auto f2 = expl::future_then(add, f, 13);
 
   auto hey = f.get();
 

@@ -14,7 +14,7 @@ public:
 
   using return_type = decltype(std::declval<Fn>()(std::declval<Args...>()));
 
-  future(Fn fn, std::tuple<Args...> args) : fn_(fn), args_(args) {}
+  future(Fn fn, Args... args) : fn_(fn), args_(std::make_tuple(args...)) {}
 
   return_type get() {
     return std::apply(std::move(fn_), std::move(args_));
@@ -31,6 +31,6 @@ private:
 };
 
 template <typename Fn, typename... Args>
-future(Fn fn, std::tuple<Args...> args) -> future<Fn, Args...>;
+future(Fn fn, Args... args) -> future<Fn, Args...>;
 
 } // end expl

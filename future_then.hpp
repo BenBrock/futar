@@ -19,8 +19,8 @@ public:
 
   using size_type = size_t;
 
-  future_then(Fn fn, future_type future, std::tuple<Args...> args)
-              : fn_(fn), future_(future), args_(args) {}
+  future_then(Fn fn, future_type future, Args... args)
+              : fn_(fn), future_(future), args_(std::make_tuple(args...)) {}
 
   template <std::size_t... Is>
   return_type call_fn_impl_(std::index_sequence<Is...>) {
@@ -38,6 +38,6 @@ private:
 };
 
 template <typename FutureType, typename Fn, typename... Args>
-future_then(Fn fn, FutureType future, std::tuple<Args...> args) -> future_then<FutureType, Fn, Args...>;
+future_then(Fn fn, FutureType future, Args... args) -> future_then<FutureType, Fn, Args...>;
 
 } // end expl
