@@ -6,7 +6,7 @@
 
 #include "detail/detail.hpp"
 
-namespace expl {
+namespace futar {
 
 template <typename FutureType, typename Fn, typename... Args>
 class future_then {
@@ -52,4 +52,4 @@ private:
 template <typename FutureType, typename Fn, typename... Args>
 future_then(Fn fn, FutureType&& future, Args... args) -> future_then<FutureType, Fn, Args...>;
 
-} // end expl
+} // end futar

@@ -1,12 +1,13 @@
 #pragma once
 
-namespace expl {
+namespace futar {
 
 template <typename T>
 class wrapper_future {
 public:
   using return_type = T;
 
+  wrapper_future() = delete;
   wrapper_future(const T& value) : value_(value) {}
   wrapper_future(T&& value) : value_(std::move(value)) {}
   wrapper_future(const wrapper_future&) = default;
@@ -28,4 +29,4 @@ private:
 template <typename T>
 wrapper_future(const T& value) -> wrapper_future<T>;
 
-} // end expl
+} // end futar

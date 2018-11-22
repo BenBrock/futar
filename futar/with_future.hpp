@@ -3,7 +3,7 @@
 #include <utility>
 #include <tuple>
 
-namespace expl {
+namespace futar {
 
 template <typename Fn, typename... Args>
 class with_future {
@@ -19,7 +19,8 @@ public:
   with_future(const with_future&) = default;
   with_future(with_future&&) = default;
 
-  with_future(Fn fn, Args... args) : fn_(fn), args_(std::make_tuple(args...)) {}
+  with_future(const Fn& fn, const Args&... args) : fn_(fn), args_(std::make_tuple(args...)) {}
+  with_future(Fn&& fn, Args&&... args) : fn_(std::move(fn)), args_(std::make_tuple(std::move(args)...)) {}
 
   template <std::size_t... Is>
   return_type call_fn_impl_(std::index_sequence<Is...>) {
@@ -39,4 +40,4 @@ private:
 template <typename Fn, typename... Args>
 with_future(Fn fn, Args... args) -> with_future<Fn, Args...>;
 
-} // end expl
+} // end futar

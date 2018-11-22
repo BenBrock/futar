@@ -6,7 +6,7 @@
 #include <chrono>
 #include <initializer_list>
 
-namespace expl {
+namespace futar {
 
 // Reference implementation of a simple future
 template <typename Fn, typename... Args>
@@ -37,4 +37,4 @@ private:
 template <typename Fn, typename... Args>
 future(Fn fn, Args... args) -> future<Fn, Args...>;
 
-} // end expl
+} // end futar

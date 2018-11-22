@@ -16,21 +16,21 @@ int add(int x, int y) {
 
 int main(int argc, char** argv) {
 
-  auto f = expl::with_future(add, expl::future(foo, 12), expl::future(foo, 13));
-  auto f2 = expl::with_future(add, f, expl::wrapper_future(13));
+  auto f = futar::with_future(add, futar::future(foo, 12), futar::future(foo, 13));
+  auto f2 = futar::with_future(add, f, futar::wrapper_future(13));
 
   auto val = f2.get();
   std::cout << val << std::endl;
 
   /*
-  auto f = expl::future_then(add, std::async(foo, 12), 13);
+  auto f = futar::future_then(add, std::async(foo, 12), 13);
 
-  expl::FuturePool pool(std::move(f));
+  futar::FuturePool pool(std::move(f));
 
   size_t n_jobs = 1000;
 
   for (size_t i = 0; i < n_jobs; i++) {
-    auto f = expl::future_then(add, std::async(foo, (int) (lrand48() % 10)), (int) (lrand48() % 10));
+    auto f = futar::future_then(add, std::async(foo, (int) (lrand48() % 10)), (int) (lrand48() % 10));
     pool.attach(std::move(f));
   }
 

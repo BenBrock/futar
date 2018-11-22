@@ -1,5 +1,6 @@
 #pragma once
 
+#include <future>
 #include <type_traits>
 #include <utility>
 #include <list>
@@ -8,7 +9,7 @@
 #include <cassert>
 #include <unistd.h>
 
-namespace expl {
+namespace futar {
 
 template <
           typename FutureType,
@@ -151,4 +152,4 @@ private:
 template <typename FutureType>
 FuturePool(FutureType&& future) -> FuturePool<FutureType>;
 
-} // end expl
+} // end futar
