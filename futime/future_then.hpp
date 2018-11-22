@@ -1,7 +1,10 @@
 #pragma once
 
+#include <tuple>
 #include <utility>
 #include <chrono>
+
+#include "detail/detail.hpp"
 
 namespace expl {
 
@@ -18,8 +21,6 @@ public:
                                                  )
                               );
 
-  using size_type = size_t;
-
   future_then() = delete;
   future_then(const future_then&) = delete;
   future_then(future_then&&) = default;
@@ -29,7 +30,8 @@ public:
 
   template <std::size_t... Is>
   return_type call_fn_impl_(std::index_sequence<Is...>) {
-    return fn_(future_.get(), std::forward<Args>(std::get<Is>(args_))...);
+    return fn_(std::forward<decay_future<future_type>::type>(future_.get()),
+               std::forward<Args>(std::get<Is>(args_))...);
   }
 
   return_type get() {

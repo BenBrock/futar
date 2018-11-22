@@ -3,8 +3,10 @@
 #include <future_then.hpp>
 #include <FuturePool.hpp>
 
+#include "with_future.hpp"
+#include "wrapper_future.hpp"
+
 int foo(int x) {
-  sleep(x);
   return x;
 }
 
@@ -13,6 +15,14 @@ int add(int x, int y) {
 }
 
 int main(int argc, char** argv) {
+
+  auto f = expl::with_future(add, expl::future(foo, 12), expl::future(foo, 13));
+  auto f2 = expl::with_future(add, f, expl::wrapper_future(13));
+
+  auto val = f2.get();
+  std::cout << val << std::endl;
+
+  /*
   auto f = expl::future_then(add, std::async(foo, 12), 13);
 
   expl::FuturePool pool(std::move(f));
@@ -32,6 +42,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Pool is size " << pool.size() << std::endl;
+  */
 
   return 0;
 }
