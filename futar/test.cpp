@@ -7,6 +7,7 @@
 #include "wrapper_future.hpp"
 
 int foo(int x) {
+  sleep(x);
   return x;
 }
 
@@ -15,23 +16,17 @@ int add(int x, int y) {
 }
 
 int main(int argc, char** argv) {
+  auto f = futar::with_future(add, std::move(std::async(foo, lrand48() % 10)), std::move(std::async(foo, lrand48() % 10)));
+  auto f2 = futar::with_future(add, std::move(f), futar::wrapper_future(13));
 
-  auto f = futar::with_future(add, futar::future(foo, 12), futar::future(foo, 13));
-  auto f2 = futar::with_future(add, f, futar::wrapper_future(13));
-
-  auto val = f2.get();
-  std::cout << val << std::endl;
-
-  /*
-  auto f = futar::future_then(add, std::async(foo, 12), 13);
-
-  futar::FuturePool pool(std::move(f));
+  futar::FuturePool pool(std::move(f2));
 
   size_t n_jobs = 1000;
 
   for (size_t i = 0; i < n_jobs; i++) {
-    auto f = futar::future_then(add, std::async(foo, (int) (lrand48() % 10)), (int) (lrand48() % 10));
-    pool.attach(std::move(f));
+    auto f = futar::with_future(add, std::move(std::async(foo, lrand48() % 10)), std::move(std::async(foo, lrand48() % 10)));
+    auto f2 = futar::with_future(add, std::move(f), futar::wrapper_future(13));
+    pool.attach(std::move(f2));
   }
 
   std::cout << "Pool is size " << pool.size() << std::endl;
@@ -42,7 +37,6 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Pool is size " << pool.size() << std::endl;
-  */
 
   return 0;
 }
