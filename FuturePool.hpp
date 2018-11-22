@@ -100,10 +100,13 @@ public:
 
     bool success = false;
     std::size_t sleep_time = 1;
+    // max sleep time in between checks 10ms
+    std::size_t max_sleep = 10000;
 
     while (!(success = some_ready_())) {
       usleep(sleep_time);
       sleep_time *= 2;
+      sleep_time = std::min(sleep_time, max_sleep);
     }
     return success;
   }
@@ -116,10 +119,13 @@ public:
 
     bool success = false;
     std::size_t sleep_time = 1;
+    // max sleep time in between checks 10ms
+    std::size_t max_sleep = 10000;
 
     while (!(success = some_ready_()) && (end - begin) < timeout_duration) {
       usleep(sleep_time);
       sleep_time *= 2;
+      sleep_time = std::min(sleep_time, max_sleep);
       end = std::chrono::high_resolution_clock::now();
     }
 

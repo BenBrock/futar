@@ -17,10 +17,10 @@ int main(int argc, char** argv) {
 
   expl::FuturePool pool(std::move(f));
 
-  size_t n_jobs = 10000;
+  size_t n_jobs = 1000;
 
   for (size_t i = 0; i < n_jobs; i++) {
-    auto f = expl::future_then(add, std::async(std::launch::async, foo, (int) (lrand48() % 10)), (int) (lrand48() % 10));
+    auto f = expl::future_then(add, std::async(foo, (int) (lrand48() % 10)), (int) (lrand48() % 10));
     pool.attach(std::move(f));
   }
 
