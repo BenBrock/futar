@@ -14,7 +14,7 @@ public:
   wrapper_future(wrapper_future&&) = default;
 
   return_type get() {
-    return value_;
+    return std::move(value_);
   }
 
   template <class Rep, class Period>
@@ -28,5 +28,8 @@ private:
 
 template <typename T>
 wrapper_future(const T& value) -> wrapper_future<T>;
+
+template <typename T>
+wrapper_future(T&& value) -> wrapper_future<T>;
 
 } // end futar
