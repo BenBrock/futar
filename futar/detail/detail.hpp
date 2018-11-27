@@ -49,4 +49,12 @@ struct is_future {
   static constexpr bool value = test_get<T>(int()) && test_wait_for<T>(int());
 };
 
+template <typename... Ts>
+struct parameter_pack {
+  template <template <typename...> typename T>
+  struct apply {
+    using type = T<Ts...>;
+  };
+};
+
 } // end futar

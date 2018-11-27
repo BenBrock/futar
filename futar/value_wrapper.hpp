@@ -2,16 +2,17 @@
 
 namespace futar {
 
+// Wrap a value in a future type.
 template <typename T>
-class wrapper_future {
+class value_wrapper {
 public:
   using return_type = T;
 
-  wrapper_future() = delete;
-  wrapper_future(const T& value) : value_(value) {}
-  wrapper_future(T&& value) : value_(std::move(value)) {}
-  wrapper_future(const wrapper_future&) = default;
-  wrapper_future(wrapper_future&&) = default;
+  value_wrapper() = delete;
+  value_wrapper(const T& value) : value_(value) {}
+  value_wrapper(T&& value) : value_(std::move(value)) {}
+  value_wrapper(const value_wrapper&) = default;
+  value_wrapper(value_wrapper&&) = default;
 
   return_type get() {
     return std::move(value_);
@@ -27,9 +28,9 @@ private:
 };
 
 template <typename T>
-wrapper_future(const T& value) -> wrapper_future<T>;
+value_wrapper(const T& value) -> value_wrapper<T>;
 
 template <typename T>
-wrapper_future(T&& value) -> wrapper_future<T>;
+value_wrapper(T&& value) -> value_wrapper<T>;
 
 } // end futar

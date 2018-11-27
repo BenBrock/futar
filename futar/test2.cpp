@@ -1,10 +1,9 @@
-#include "future_wrapper.hpp"
-#include "wrapper_future.hpp"
-#include "detail/detail.hpp"
+#include "fn_wrapper.hpp"
 #include <iostream>
 
 template <typename T>
 T identity(T value) {
+  sleep(1);
   return value;
 }
 
@@ -13,27 +12,22 @@ T add(T a, T b) {
   return a + b;
 }
 
-template <typename T,
-          std::size_t tag = 0,
-          typename = std::enable_if_t<futar::is_future<T>::value>>
-auto wrap_future(T&& value) {
-  return futar::future_wrapper<T>(std::move(value));
-}
-
-template <typename T,
-          bool tag = 1,
-          typename = std::enable_if_t<!futar::is_future<T>::value>>
-auto wrap_future(T&& value) {
-  return futar::wrapper_future<T>(std::move(value));
-}
-
-template <typename Fn, typename... Args>
-auto apply(Fn fn, Args... args) {
-  return fn(wrap_future<Args>(std::move(args)).get()...);
-}
-
 int main(int argc, char** argv) {
-  auto result = apply(add<int>, std::async(identity<int>, 12), std::async(identity<int>, 13));
-  std::cout << result2 << std::endl;
+  // auto result = futar::apply(add<int>, std::async(identity<int>, 12), std::async(identity<int>, 13));
+
+  // auto result = futar::fn_wrapper(add<int>, std::async(identity<int>, 12), std::async(identity<int>, 13));
+
+  auto result = futar::fn_wrapper([](auto a, auto b) { return a + b; },
+                                  std::async(identity<int>, 12), std::async(identity<int>, 13));
+
+  while (true) {
+    if (result.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+      std::cout << result.get() << std::endl;
+      break;
+    } else {
+      std::cout << "not ready" << std::endl;
+    }
+    usleep(100000);
+  }
   return 0;
 }
