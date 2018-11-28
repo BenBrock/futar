@@ -1,10 +1,13 @@
 #pragma once
 
+#include <future>
+#include "future.hpp"
+
 namespace futar {
 
 // Wrap a value in a future type.
 template <typename T>
-class value_wrapper {
+class value_wrapper final : public virtual future<T> {
 public:
   using return_type = T;
 
@@ -13,9 +16,14 @@ public:
   value_wrapper(T&& value) : value_(std::move(value)) {}
   value_wrapper(const value_wrapper&) = default;
   value_wrapper(value_wrapper&&) = default;
+  ~value_wrapper() override = default;
 
-  return_type get() {
+  return_type get() override {
     return std::move(value_);
+  }
+
+  value_wrapper* move() override {
+    return new value_wrapper(std::move(*this));
   }
 
   template <class Rep, class Period>

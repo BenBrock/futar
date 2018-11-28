@@ -5,36 +5,17 @@
 #include <tuple>
 #include <chrono>
 #include <initializer_list>
+#include "detail/detail.hpp"
 
 namespace futar {
 
-// Reference implementation of a simple future
-template <typename Fn, typename... Args>
+template <typename T>
 class future {
 public:
-  using return_type = decltype(std::declval<Fn>()(std::declval<Args...>()));
 
-  future() = delete;
-  future(const future&) = default;
-  future(future&&) = default;
-
-  future(Fn fn, Args... args) : fn_(fn), args_(std::make_tuple(args...)) {}
-
-  return_type get() {
-    return std::apply(std::move(fn_), std::move(args_));
-  }
-
-  template <class Rep, class Period>
-  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) const {
-    return std::future_status::ready;
-  }
-
-private:
-  Fn fn_;
-  std::tuple<Args...> args_;
+  virtual T get() = 0;
+  virtual future* move() = 0;
+  virtual ~future() = default;
 };
-
-template <typename Fn, typename... Args>
-future(Fn fn, Args... args) -> future<Fn, Args...>;
 
 } // end futar

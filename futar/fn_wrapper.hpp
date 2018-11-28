@@ -3,6 +3,7 @@
 #include "detail/detail.hpp"
 #include "future_wrapper.hpp"
 #include "value_wrapper.hpp"
+#include "future.hpp"
 
 #include <utility>
 #include <tuple>
@@ -25,11 +26,21 @@ auto wrap_future(T&& value) {
   return futar::value_wrapper<T>(std::move(value));
 }
 
+template <typename Fn, typename... Args>
+struct future_result {
+  using type = decltype(std::declval<Fn>()(wrap_future(std::declval<Args>()).get()...));
+};
+
+template <typename Fn, typename... Args>
+using future_result_t = typename future_result <Fn, Args...>::type;
+
 // Wrap a function as a future,
 // arguments may be future types.
 template <typename Fn, typename... Args>
-class fn_wrapper {
+class fn_wrapper final : public virtual future<future_result_t<Fn, Args...>> {
 public:
+  using return_type = future_result_t<Fn, Args...>;
+
   fn_wrapper(const Fn& fn, const Args&... args)
              : fn_(fn), args_(std::make_tuple(wrap_future<Args>(args)...)) {}
 
@@ -37,13 +48,21 @@ public:
              : fn_(std::move(fn)),
                args_(std::make_tuple(std::move(wrap_future(std::move(args)))...)) {}
 
+  fn_wrapper(fn_wrapper&&) = default;
+
+  ~fn_wrapper() override = default;
+
   template <std::size_t... Is>
   auto call_fn_impl_(std::index_sequence<Is...>) {
     return fn_(std::get<Is>(args_).get()...);
   }
 
-  auto get() {
+  return_type get() override {
     return call_fn_impl_(std::index_sequence_for<Args...>());
+  }
+
+  fn_wrapper* move() override {
+    return new fn_wrapper(std::move(*this));
   }
 
   template <class Rep, class Period>
@@ -97,5 +116,10 @@ fn_wrapper(Fn&& fn, Args&&... args) -> fn_wrapper<Fn, Args...>;
 
 template <typename Fn, typename... Args>
 fn_wrapper(const Fn& fn, const Args&... args) -> fn_wrapper<Fn, Args...>;
+
+template <typename Fn, typename... Args>
+auto call(Fn&& fn, Args&&... args) {
+  return fn_wrapper(std::move(fn), std::move(args)...);
+}
 
 } // end futar
