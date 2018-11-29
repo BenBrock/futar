@@ -32,7 +32,7 @@ struct future_result {
 };
 
 template <typename Fn, typename... Args>
-using future_result_t = typename future_result <Fn, Args...>::type;
+using future_result_t = typename future_result<Fn, Args...>::type;
 
 // Wrap a function as a future,
 // arguments may be future types.

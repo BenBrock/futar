@@ -7,6 +7,24 @@
 namespace futar {
 
 template <typename T>
+struct evaluate_chain {
+  template <typename U, std::size_t b = 0, typename = std::enable_if_t<!is_future<U>::value>>
+  auto get(U&& value) {
+    return value;
+  }
+
+  template <typename U, bool b = 1, typename = std::enable_if_t<is_future<U>::value>>
+  auto get(U&& future) {
+    return get(future.get());
+  }
+};
+
+template <typename T>
+auto eval(T&& val) {
+  return evaluate_chain<T>{}.get(val);
+}
+
+template <typename T>
 class FuturePool {
 public:
   FuturePool() = default;

@@ -1,13 +1,15 @@
 #include "fn_wrapper.hpp"
-#include "pools/VariantPool.hpp"
+#include "future_chain.hpp"
 #include <list>
 #include <memory>
 #include <iostream>
 #include <variant>
+#include <pools/ChainPool.hpp>
+#include "while.hpp"
 
 template <typename T>
 T identity(T value) {
-  sleep(1);
+  sleep(lrand48() % 5);
   return value;
 }
 
@@ -17,31 +19,27 @@ T add(T a, T b) {
 }
 
 int main(int argc, char** argv) {
-  // auto result = futar::apply(add<int>, std::async(identity<int>, 12), std::async(identity<int>, 13));
 
-  // auto result = futar::fn_wrapper(add<int>, std::async(identity<int>, 12), std::async(identity<int>, 13));
+  int val = 0;
+  futar::while_([](int&& val) { return val < 10; }, [](int&& val) { val++; }, std::move(val));
+  std::cout << "val is " << val << std::endl;
+  /*
+  futar::FuturePool<int> pool(10);
 
-  futar::VariantPool<int, float> pool;
+  size_t num_to_push = 100;
 
-  auto result = futar::fn_wrapper([](auto a, auto b) { return a + b; },
-                                  std::async(identity<int>, 12), std::async(identity<int>, 13));
+  for (size_t i = 0; i < num_to_push; i++) {
+    auto result = futar::call([](auto a, auto b) { return std::async(add<int>, a, b); },
+                                 std::async(identity<int>, 12), std::async(identity<int>, 13));
+    pool.push_back(std::move(result));
+  }
 
-  pool.push_back(std::move(result));
-
-  auto fresult = futar::fn_wrapper([](auto a, auto b) { return a + b; },
-                                   std::async(identity<float>, 1.23), std::async(identity<float>, 13));
-
-  pool.push_back(std::move(fresult));
+  pool.drain();
 
   while (pool.size() > 0) {
-    auto value = pool.get();
-
-    if (value.index() == 0) {
-      std::cout << std::get<0>(value) << std::endl;
-    } else if (value.index() == 1) {
-      std::cout << std::get<1>(value) << std::endl;
-    }
+    std::cout << pool.get() << std::endl;
   }
+  */
 
   return 0;
 }
