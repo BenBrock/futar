@@ -12,6 +12,21 @@
 
 namespace futar {
 
+
+template <typename T,
+          std::size_t tag = 0,
+          typename = std::enable_if_t<futar::is_future<T>::value>>
+decltype(auto) get_val_(T&& val) {
+  return val.get();
+}
+
+template <typename T,
+          bool tag = 1,
+          typename = std::enable_if_t<!futar::is_future<T>::value>>
+decltype(auto) get_val_(T&& val) {
+  return std::forward<T>(val);
+}
+
 template <typename T,
           std::size_t tag = 0,
           typename = std::enable_if_t<futar::is_future<T>::value>>
@@ -28,7 +43,7 @@ auto wrap_future(T&& value) {
 
 template <typename Fn, typename... Args>
 struct future_result {
-  using type = decltype(std::declval<Fn>()(wrap_future(std::declval<Args>()).get()...));
+  using type = decltype(std::declval<Fn>()(get_val_(std::declval<Args>())...));
 };
 
 template <typename Fn, typename... Args>
@@ -42,19 +57,22 @@ public:
   using return_type = future_result_t<Fn, Args...>;
 
   fn_wrapper(const Fn& fn, const Args&... args)
-             : fn_(fn), args_(std::make_tuple(wrap_future<Args>(args)...)) {}
+             : fn_(fn), args_(std::make_tuple(args...)) {}
 
   fn_wrapper(Fn&& fn, Args&&... args)
              : fn_(std::move(fn)),
-               args_(std::make_tuple(std::move(wrap_future(std::move(args)))...)) {}
+               args_(std::make_tuple(std::move(args)...)) {}
 
   fn_wrapper(fn_wrapper&&) = default;
+  fn_wrapper& operator=(fn_wrapper&&) = default;
+  // XXX: for now, maybe
+  fn_wrapper(const fn_wrapper&) = delete;
 
   ~fn_wrapper() override = default;
 
   template <std::size_t... Is>
   auto call_fn_impl_(std::index_sequence<Is...>) {
-    return fn_(std::get<Is>(args_).get()...);
+    return fn_(get_val_(std::get<Is>(args_))...);
   }
 
   return_type get() override {
@@ -91,8 +109,10 @@ public:
 
   template <size_t I>
   bool check_futures_impl_() const {
-    if (std::get<I>(args_).wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
-      return false;
+    if constexpr(futar::is_future<decltype(std::get<I>(args_))>::value) {
+      if (std::get<I>(args_).wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
+        return false;
+      }
     }
 
     if constexpr(I+1 < sizeof...(Args)) {
@@ -108,7 +128,7 @@ public:
 
 private:
   Fn fn_;
-  std::tuple<decltype(wrap_future(std::declval<Args>()))...> args_;
+  std::tuple<Args...> args_;
 };
 
 template <typename Fn, typename... Args>

@@ -51,6 +51,10 @@ public:
     return values_.size() + futures_.size();
   }
 
+  auto size_() const {
+    return std::make_tuple(values_.size(), futures_.size());
+  }
+
   size_t capacity() const {
     return capacity_;
   }
@@ -60,13 +64,21 @@ public:
     if (futures_.size() >= capacity()) {
       progress(1);
     }
-    futures_.emplace_back(future_chain(std::move(future)).move());
+    future_chain chain(std::move(future));
+    futures_.emplace_back(chain.move());
   }
 
   void drain() {
     while (futures_.size() > 0) {
       progress();
     }
+  }
+
+  void get_drain() {
+    for (auto it = futures_.begin(); it != futures_.end(); it++) {
+      values_.push_back((*it)->get());
+    }
+    futures_.clear();
   }
 
 private:

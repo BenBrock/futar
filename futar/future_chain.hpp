@@ -16,7 +16,9 @@ struct abstract_future_chain {
 template <typename T>
 class future_chain final : public virtual abstract_future_chain<std::remove_cv_t<std::remove_reference_t<decay_chain_t<T>>>> {
 public:
-  using return_type = decay_chain_t<T>;
+  using return_type = std::remove_cv_t<std::remove_reference_t<decay_chain_t<T>>>;
+
+  static constexpr size_t variant_size = std::variant_size<chain_variant_t<T>>::value;
 
   future_chain(T&& future) : future_(std::move(future)) {}
 
@@ -26,45 +28,89 @@ public:
   // XXX: my convention for visitor functions is
   //      "return true if you are finished visiting"
 
-  return_type get() override {
-    auto get_impl_ = [&](auto&& future) -> bool {
-      if constexpr(is_future<decltype(future)>::value) {
-        future_ = future.get();
+  // XXX: For some reason std::visit() doesn't work
+  // properly in all cases here.
+  template <std::size_t I = 0>
+  bool get_impl_() {
+    using current_type = decltype(std::get<I>(future_));
+    if constexpr(futar::is_future<current_type>::value) {
+      if (future_.index() == I) {
+        future_ = std::get<I>(future_).get();
         return false;
-      } else {
+      }
+    } else {
+      if (future_.index() == I) {
         return true;
       }
-    };
-    while (!std::visit(get_impl_, future_)) {}
-    return std::get<return_type>(future_);
+    }
+
+    if constexpr(I+1 < variant_size) {
+      return get_impl_<I+1>();
+    }
+    std::cout << "THIS SHOULD NOT HAPPEN" << std::endl;
+    return true;
   }
 
-  void evaluate_ready() {
-    auto eval_impl_ = [&](auto&& future) -> bool {
-      if constexpr(is_future<decltype(future)>::value) {
-        if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-          future_ = future.get();
+  template <std::size_t I = 0>
+  bool eval_impl_() {
+    using current_type = decltype(std::get<I>(future_));
+    if constexpr(futar::is_future<current_type>::value) {
+      if (future_.index() == I) {
+        if (std::get<I>(future_).wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+          future_ = std::get<I>(future_).get();
           return false;
         } else {
           return true;
         }
       }
-      return true;
-    };
-    while (!std::visit(eval_impl_, future_)) {}
-  }
-
-  bool is_ready_() const {
-    return std::visit([](auto&& future) -> bool {
-      if constexpr(is_future<decltype(future)>::value) {
-        return false;
-      } else {
+    } else {
+      if (future_.index() == I) {
         return true;
       }
-    }, future_);
+    }
+
+    if constexpr(I+1 < variant_size) {
+      return eval_impl_<I+1>();
+    }
+
+    std::cout << "THIS SHOULD NOT HAPPEN" << std::endl;
+    return true;
   }
 
-  bool is_ready() {
+  template <std::size_t I = 0>
+  bool is_ready_impl_() {
+    using current_type = decltype(std::get<I>(future_));
+    if constexpr(futar::is_future<current_type>::value) {
+      if (future_.index() == I) {
+        return false;
+      }
+    } else {
+      if (future_.index() == I) {
+        return true;
+      }
+    }
+
+    if constexpr(I+1 < variant_size) {
+      return is_ready_impl_<I+1>();
+    }
+    std::cout << "THIS SHOULD NOT HAPPEN" << std::endl;
+    return true;
+  }
+
+  return_type get() override {
+    while (!get_impl_()) {}
+    return std::get<return_type>(future_);
+  }
+
+  void evaluate_ready() {
+    while (!eval_impl_()) {}
+  }
+
+  bool is_ready_() {
+    return is_ready_impl_();
+  }
+
+  bool is_ready() override {
     evaluate_ready();
     return is_ready_();
   }
