@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <chrono>
 #include "detail/detail.hpp"
 
@@ -23,7 +24,11 @@ public:
   future_chain(T&& future) : future_(std::move(future)) {}
 
   future_chain(const future_chain&) = delete;
+
   future_chain(future_chain&&) = default;
+  future_chain& operator=(future_chain&&) = default;
+
+  future_chain() = default;
 
   // XXX: my convention for visitor functions is
   //      "return true if you are finished visiting"
@@ -117,19 +122,26 @@ public:
 
   template <class Rep, class Period>
   std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) {
+    if (timeout_duration == std::chrono::seconds(0)) {
+      if (is_ready()) {
+        return std::future_status::ready;
+      } else {
+        return std::future_status::timeout;
+      }
+    }
+
     auto begin = std::chrono::high_resolution_clock::now();
-    auto end = begin;
 
     bool success = false;
     std::size_t sleep_time = 1;
-    // OPTIMIZE: max sleep time in between checks 10ms
-    std::size_t max_sleep = 10000;
+    // OPTIMIZE: max sleep time in between checks 100us
+    std::size_t max_sleep = 100;
 
-    while (!(success = is_ready()) && (end - begin) < timeout_duration) {
+    while (!(success = is_ready()) &&
+           (std::chrono::high_resolution_clock::now() - begin) < timeout_duration) {
       usleep(sleep_time);
       sleep_time *= 2;
       sleep_time = std::min(sleep_time, max_sleep);
-      end = std::chrono::high_resolution_clock::now();
     }
 
     if (success) {

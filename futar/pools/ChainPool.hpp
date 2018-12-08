@@ -25,9 +25,9 @@ public:
     return rv;
   }
 
-  std::size_t progress(std::size_t num_to_empty = std::numeric_limits<size_t>::max()) {
+  std::size_t progress(std::size_t num_to_empty = 0) {
     std::size_t num_emptied = 0;
-    while (num_emptied < num_to_empty && futures_.size() > 0) {
+    do {
       for (auto it = futures_.begin(); it != futures_.end(); ) {
         if ((*it)->is_ready()) {
           values_.push_back((*it)->get());
@@ -43,7 +43,7 @@ public:
           */
         }
       }
-    }
+    } while (num_emptied < num_to_empty && futures_.size() > 0);
     return num_emptied;
   }
 
@@ -61,6 +61,7 @@ public:
 
   template <typename U>
   void push_back(U&& future) {
+    progress();
     if (futures_.size() >= capacity()) {
       progress(1);
     }

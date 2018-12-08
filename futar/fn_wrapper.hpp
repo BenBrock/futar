@@ -84,20 +84,26 @@ public:
   }
 
   template <class Rep, class Period>
-  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) const {
+  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) {
+    if (timeout_duration == std::chrono::seconds(0)) {
+      if (all_ready_()) {
+        return std::future_status::ready;
+      } else {
+        return std::future_status::timeout;
+      }
+    }
     auto begin = std::chrono::high_resolution_clock::now();
-    auto end = begin;
 
     bool success = false;
     std::size_t sleep_time = 1;
-    // OPTIMIZE: max sleep time in between checks 10ms
-    std::size_t max_sleep = 10000;
+    // OPTIMIZE: max sleep time in between checks 100us
+    std::size_t max_sleep = 100;
 
-    while (!(success = all_ready_()) && (end - begin) < timeout_duration) {
+    while (!(success = all_ready_()) &&
+           (std::chrono::high_resolution_clock::now() - begin) < timeout_duration) {
       usleep(sleep_time);
       sleep_time *= 2;
       sleep_time = std::min(sleep_time, max_sleep);
-      end = std::chrono::high_resolution_clock::now();
     }
 
     if (success) {
@@ -108,7 +114,7 @@ public:
   }
 
   template <size_t I>
-  bool check_futures_impl_() const {
+  bool check_futures_impl_() {
     if constexpr(futar::is_future<decltype(std::get<I>(args_))>::value) {
       if (std::get<I>(args_).wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
         return false;
@@ -122,7 +128,7 @@ public:
     return true;
   }
 
-  bool all_ready_() const {
+  bool all_ready_() {
     return check_futures_impl_<0>();
   }
 
