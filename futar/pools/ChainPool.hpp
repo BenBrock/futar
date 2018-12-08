@@ -41,6 +41,8 @@ public:
             return num_emptied;
           }
           */
+        } else {
+          it++;
         }
       }
     } while (num_emptied < num_to_empty && futures_.size() > 0);
@@ -61,7 +63,6 @@ public:
 
   template <typename U>
   void push_back(U&& future) {
-    progress();
     if (futures_.size() >= capacity()) {
       progress(1);
     }

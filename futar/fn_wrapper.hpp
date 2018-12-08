@@ -116,7 +116,7 @@ public:
   template <size_t I>
   bool check_futures_impl_() {
     if constexpr(futar::is_future<decltype(std::get<I>(args_))>::value) {
-      if (std::get<I>(args_).wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
+      if (std::get<I>(args_).wait_for(std::chrono::seconds(0)) == std::future_status::timeout) {
         return false;
       }
     }
