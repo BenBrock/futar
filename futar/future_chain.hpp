@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <chrono>
-#include "detail/detail.hpp"
+#include <futar/detail/detail.hpp>
 
 namespace futar {
 

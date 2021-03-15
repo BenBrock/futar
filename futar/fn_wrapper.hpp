@@ -1,9 +1,9 @@
 #pragma once
 
-#include "detail/detail.hpp"
-#include "future_wrapper.hpp"
-#include "value_wrapper.hpp"
-#include "future.hpp"
+#include <futar/detail/detail.hpp>
+#include <futar/future_wrapper.hpp>
+#include <futar/value_wrapper.hpp>
+#include <futar/future.hpp>
 
 #include <utility>
 #include <tuple>

@@ -61,6 +61,10 @@ public:
     return capacity_;
   }
 
+  size_t ready_size() const {
+    return values_.size();
+  }
+
   template <typename U>
   void push_back(U&& future) {
     if (futures_.size() >= capacity()) {

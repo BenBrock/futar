@@ -2,8 +2,8 @@
 
 #include <optional>
 
-#include "fn_wrapper.hpp"
-#include "future_chain.hpp"
+#include <futar/fn_wrapper.hpp>
+#include <futar/future_chain.hpp>
 
 namespace futar {
 
@@ -24,9 +24,6 @@ public:
   }
 
   void progress() {
-    if (BCL::rank() == 0) {
-      // printf("(%lu) progress... ready? %d\n", BCL::rank(), ready_);
-    }
     if (!ready_) {
       if (future_chain_.value().wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
         rv_ = future_chain_.value().get();
@@ -37,9 +34,7 @@ public:
           ready_ = true;
         }
       } else {
-        if (BCL::rank() == 0) {
-          // printf("(%lu) not ready yet.\n", BCL::rank()));
-        }
+        // Not ready yet.
       }
     }
   }

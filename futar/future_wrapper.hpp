@@ -1,8 +1,8 @@
 #pragma once
 
 #include <future>
-#include "future.hpp"
-#include "detail/detail.hpp"
+#include <futar/future.hpp>
+#include <futar/detail/detail.hpp>
 #include <utility>
 
 namespace futar {

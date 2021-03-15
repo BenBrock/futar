@@ -1,11 +1,15 @@
-#include "fn_wrapper.hpp"
-#include "future_chain.hpp"
+
+/*
+  NOTE: This test needs to be modified to work with the updated
+        future pool API.
+*/
+
+
+#include <futar/futar.hpp>
 #include <list>
 #include <memory>
 #include <iostream>
 #include <variant>
-#include <pools/ChainPool.hpp>
-#include "while.hpp"
 
 template <typename T>
 T identity(T value) {

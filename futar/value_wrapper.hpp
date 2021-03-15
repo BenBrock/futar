@@ -1,7 +1,7 @@
 #pragma once
 
 #include <future>
-#include "future.hpp"
+#include <futar/future.hpp>
 
 namespace futar {
 

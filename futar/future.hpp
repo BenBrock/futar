@@ -5,7 +5,7 @@
 #include <tuple>
 #include <chrono>
 #include <initializer_list>
-#include "detail/detail.hpp"
+#include <futar/detail/detail.hpp>
 
 namespace futar {
 
