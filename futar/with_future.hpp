@@ -33,7 +33,7 @@ public:
   }
 
   template <class Rep, class Period>
-  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) const {
+  std::future_status wait_for(const std::chrono::duration<Rep,Period>& timeout_duration) {
     auto begin = std::chrono::high_resolution_clock::now();
 
     auto end = begin;
@@ -58,7 +58,7 @@ public:
   }
 
   template <size_t I>
-  bool check_futures_impl_() const {
+  bool check_futures_impl_() {
     if (std::get<I>(args_).wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
       return false;
     }
@@ -70,7 +70,7 @@ public:
     return true;
   }
 
-  bool all_ready_() const {
+  bool all_ready_() {
     return check_futures_impl_<0>();
   }
 
